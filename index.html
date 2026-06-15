@@ -451,11 +451,13 @@ function startWorkout(){
   const phase = PHASES[phaseIdx];
   const plan = buildWorkoutPlan(phase, workoutType);
 
+  if(ticker){ clearInterval(ticker); ticker = null; }
+
   workoutState = {
     plan, phase, type: workoutType,
     stepIdx: 0,
     phaseTime: plan.steps[0].duration,
-    paused: false,
+    paused: true,
     startedAt: Date.now(),
     completedMainReps: 0,
   };
@@ -465,31 +467,26 @@ function startWorkout(){
   document.getElementById('workout-title').textContent = phase.name;
   document.getElementById('icon-play').style.display = '';
   document.getElementById('icon-pause').style.display = 'none';
-  workoutState.paused = true;
 
   applyStep();
 }
 
 function tick(){
-  if(!workoutState || workoutState.paused) return;
-  const now = Date.now();
-  const elapsed = (now - workoutState.lastTick) / 1000;
-  workoutState.lastTick = now;
-  workoutState.phaseTime -= elapsed;
-
-  const display = Math.max(0, Math.ceil(workoutState.phaseTime));
+  if(!workoutState) return;
+  workoutState.phaseTime--;
+  const display = Math.max(0, workoutState.phaseTime);
   document.getElementById('ring-time').textContent = display;
   updateRingDisplay();
-
   if(workoutState.phaseTime <= 0){
-    advanceStep();
-  } else {
-    ticker = requestAnimationFrame(tick);
+    clearInterval(ticker);
+    ticker = null;
+    setTimeout(advanceStep, 50);
   }
 }
 
 function advanceStep(){
   const ws = workoutState;
+  if(!ws) return;
   const curStep = ws.plan.steps[ws.stepIdx];
 
   if(curStep.phase==='relax' && !curStep.isPulse) ws.completedMainReps++;
@@ -502,10 +499,10 @@ function advanceStep(){
 
   const next = ws.plan.steps[ws.stepIdx];
   ws.phaseTime = next.duration;
-  ws.lastTick = Date.now();
   applyStep();
   document.getElementById('ring-time').textContent = ws.phaseTime;
-  ticker = requestAnimationFrame(tick);
+  if(ticker){ clearInterval(ticker); }
+  ticker = setInterval(tick, 1000);
 }
 
 function applyStep(){
@@ -585,22 +582,23 @@ function togglePause(){
   document.getElementById('icon-play').style.display = workoutState.paused?'':'none';
   document.getElementById('icon-pause').style.display = workoutState.paused?'none':'';
   if(!workoutState.paused){
-    workoutState.lastTick = Date.now();
-    ticker = requestAnimationFrame(tick);
+    if(ticker){ clearInterval(ticker); }
+    ticker = setInterval(tick, 1000);
   } else {
-    cancelAnimationFrame(ticker);
+    clearInterval(ticker);
+    ticker = null;
   }
 }
 
-function restartWorkout(){ cancelAnimationFrame(ticker); startWorkout(); }
+function restartWorkout(){ clearInterval(ticker); ticker=null; startWorkout(); }
 
 function stopWorkout(){
   if(!confirm('Stop this session?')) return;
-  cancelAnimationFrame(ticker); workoutState=null; showScreen('train');
+  clearInterval(ticker); ticker=null; workoutState=null; showScreen('train');
 }
 
 function finishWorkout(){
-  cancelAnimationFrame(ticker);
+  clearInterval(ticker); ticker=null;
   playComplete(); vibrate([100,50,100,50,200]);
 
   const ws = workoutState;
