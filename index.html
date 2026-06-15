@@ -232,6 +232,10 @@ nav button.active{color:var(--teal)}
       Regular and reverse kegel sessions both count toward phase progression.
       A pulse finisher (10 × 1s fast contractions) is added from Phase 2 onward to train fast-twitch fibers alongside the endurance work.
     </p>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border)">
+      <strong style="color:var(--amber)">⚠ Recovery</strong><br>
+      If you experience pelvic discomfort, tension, pain, or difficulty relaxing, take 1–2 rest days before resuming. These muscles need recovery time just like any other.
+    </p>
   </div>
 </div>
 
@@ -254,35 +258,35 @@ nav button.active{color:var(--teal)}
 <script>
 const PHASES = [
   {
-    id:1, name:'Phase 1 — Foundation', unlockAt:0, completeTo:12,
+    id:1, name:'Phase 1 — Foundation', unlockAt:0, completeTo:21,
     desc:'Building the habit. Short holds, low volume, focus on feeling the muscle.',
     kegel:{holdTime:5,reps:8,sets:2,restTime:15,pulse:false},
     reverse:{holdTime:3,reps:6,sets:2,restTime:15,pulse:false},
-    target:'3 sessions/day recommended'
+    target:'2–3 sessions/day recommended'
   },
   {
-    id:2, name:'Phase 2 — Build', unlockAt:12, completeTo:18,
+    id:2, name:'Phase 2 — Build', unlockAt:21, completeTo:21,
     desc:'Longer holds and an added pulse finisher to start training fast-twitch fibers.',
     kegel:{holdTime:7,reps:10,sets:3,restTime:15,pulse:true},
     reverse:{holdTime:5,reps:8,sets:2,restTime:15,pulse:true},
     target:'2–3 sessions/day recommended'
   },
   {
-    id:3, name:'Phase 3 — Strength', unlockAt:30, completeTo:18,
+    id:3, name:'Phase 3 — Strength', unlockAt:42, completeTo:28,
     desc:'Heavier volume. 10-second holds are the proven sweet spot for strength gains.',
     kegel:{holdTime:10,reps:10,sets:3,restTime:20,pulse:true},
     reverse:{holdTime:7,reps:10,sets:3,restTime:20,pulse:true},
     target:'2 sessions/day recommended'
   },
   {
-    id:4, name:'Phase 4 — Endurance', unlockAt:48, completeTo:24,
+    id:4, name:'Phase 4 — Endurance', unlockAt:70, completeTo:30,
     desc:'Maximum volume. Builds the sustained tone that drives long-term results.',
     kegel:{holdTime:10,reps:12,sets:4,restTime:20,pulse:true},
     reverse:{holdTime:10,reps:10,sets:3,restTime:20,pulse:true},
     target:'2 sessions/day recommended'
   },
   {
-    id:5, name:'Phase 5 — Elite', unlockAt:72, completeTo:null,
+    id:5, name:'Phase 5 — Elite', unlockAt:100, completeTo:null,
     desc:'Maintenance and peak performance. Hold here indefinitely.',
     kegel:{holdTime:12,reps:15,sets:4,restTime:20,pulse:true},
     reverse:{holdTime:10,reps:12,sets:4,restTime:20,pulse:true},
@@ -470,6 +474,21 @@ function startWorkout(){
 
   document.getElementById('session-label').textContent = workoutType==='reverse' ? 'Reverse kegel · '+phase.name.split('—')[1].trim() : 'Regular kegel · '+phase.name.split('—')[1].trim();
   document.getElementById('workout-title').textContent = phase.name;
+
+  // Restore controls in case finishWorkout() replaced them
+  document.getElementById('controls').innerHTML = `
+    <button class="btn-secondary" onclick="restartWorkout()" aria-label="Restart">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+    </button>
+    <button class="btn-main" id="btn-play" onclick="togglePause()" aria-label="Play/Pause">
+      <svg id="icon-play" viewBox="0 0 24 24" fill="none"><polygon points="5,3 19,12 5,21" fill="white"/></svg>
+      <svg id="icon-pause" viewBox="0 0 24 24" fill="none" style="display:none"><rect x="6" y="4" width="4" height="16" fill="white"/><rect x="14" y="4" width="4" height="16" fill="white"/></svg>
+    </button>
+    <button class="btn-secondary" onclick="stopWorkout()" aria-label="Stop">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/></svg>
+    </button>
+  `;
+
   document.getElementById('icon-play').style.display = '';
   document.getElementById('icon-pause').style.display = 'none';
 
