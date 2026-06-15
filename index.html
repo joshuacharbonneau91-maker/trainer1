@@ -583,6 +583,7 @@ function updateRingDisplay(){
 
 function togglePause(){
   if(!workoutState) return;
+  unlockAudio();
   workoutState.paused = !workoutState.paused;
   document.getElementById('icon-play').style.display = workoutState.paused?'':'none';
   document.getElementById('icon-pause').style.display = workoutState.paused?'none':'';
@@ -637,26 +638,42 @@ function finishWorkout(){
 
 // AUDIO
 function getAudioCtx(){
-  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  }
+  if(audioCtx.state === 'suspended'){
+    audioCtx.resume();
+  }
   return audioCtx;
+}
+function unlockAudio(){
+  const ctx = getAudioCtx();
+  // Play a silent buffer to unlock on iOS
+  const buf = ctx.createBuffer(1,1,22050);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(ctx.destination);
+  src.start(0);
+  ctx.resume();
 }
 function playTone(freq, dur){
   if(!settings.sound) return;
   try {
     const ctx = getAudioCtx();
+    if(ctx.state === 'suspended'){ ctx.resume(); }
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain); gain.connect(ctx.destination);
     osc.type = 'sine'; osc.frequency.value = freq;
     gain.gain.setValueAtTime(0,ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.25,ctx.currentTime+0.01);
+    gain.gain.linearRampToValueAtTime(0.3,ctx.currentTime+0.01);
     gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
     osc.start(ctx.currentTime); osc.stop(ctx.currentTime+dur);
   } catch(e){}
 }
-function playContract(isPulse){ playTone(isPulse?880:660, isPulse?0.08:0.15); }
-function playRelax(){ playTone(330,0.2); }
-function playComplete(){ [660,880,1100].forEach((f,i)=>setTimeout(()=>playTone(f,0.2),i*150)); }
+function playContract(isPulse){ playTone(isPulse?880:660, isPulse?0.1:0.18); }
+function playRelax(){ playTone(330,0.25); }
+function playComplete(){ [660,880,1100].forEach((f,i)=>setTimeout(()=>playTone(f,0.25),i*180)); }
 function vibrate(p){ if(settings.haptic && navigator.vibrate) navigator.vibrate(p); }
 
 // HISTORY
