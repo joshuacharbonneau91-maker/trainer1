@@ -2,7 +2,7 @@
   "name": "Kegel Trainer",
   "short_name": "Kegel",
   "description": "Guided pelvic floor exercise trainer",
-  "start_url": "/",
+ "start_url": "/kegel-trainer/"
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
